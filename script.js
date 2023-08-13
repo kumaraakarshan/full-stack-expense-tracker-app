@@ -1,4 +1,0 @@
-function submitted() {
-    alert(`submitted`)
-}
-
