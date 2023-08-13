@@ -20,8 +20,10 @@ document.getElementById("submitBtn").addEventListener("click", function() {
           
       })
       .catch(error => {
+        
           console.error('Error saving data: ', error);
       });
 
      
 });
+
