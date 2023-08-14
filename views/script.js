@@ -14,14 +14,19 @@ document.getElementById("submitBtn").addEventListener("click", function() {
       
   };
 
-  axios.post('/api/save-data', formData)
+
+
+  axios.post('/api/signup', formData)
       .then(response => {
+       
+
           alert(response.data.message); // Display the success message from the server
           
       })
       .catch(error => {
-        
+          
           console.error('Error saving data: ', error);
+          alert('this user is already registered \n'+error); // Display the failure message from the server
       });
 
      

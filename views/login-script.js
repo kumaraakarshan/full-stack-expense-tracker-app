@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
                
             alert('login successfully');
                 
-                window.location.href = "/";
+                window.location.href = "/feature.html";
             })
             .catch(error => {
                
