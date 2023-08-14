@@ -8,16 +8,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Send login request to the backend using Axios or fetch API
         axios.post("/api/login", { email, password })
-            .then(response => {
-               
-            alert('login successfully');
-                
-                window.location.href = "/feature.html";
-            })
-            .catch(error => {
-               
-                console.error("Login failed:", error);
-                
-            });
+        .then(response => {
+          const token = response.data.token; // Assuming the token is part of the response
+          localStorage.setItem('token', token); // Store the token in localStorage
+      
+          alert('Login successful');
+          window.location.href = "/feature.html";
+        })
+        .catch(error => {
+          console.error("Login failed:", error);
+        });
+      
     });
 });

@@ -24,26 +24,7 @@ document.getElementById("submitBtn").addEventListener("click", function() {
 });
 
 
-// google.charts.load('current', {'packages':['corechart']});
-// google.charts.setOnLoadCallback(drawChart);
-// function drawChart() {
-//     var data = google.visualization.arrayToDataTable([
-//         ['Task', 'Hours per Day'],
-//         ['salary',     11],
-//         ['food',      2],
-//         ['fuel',  2],
-//         ['electricity', 2],
-//         ['rent',    7],
-//       ]);
-    
-//     var options = {
-//         title: '',
-//         pieHole: 0.4,
-//       };
-    
-//     var chart = new google.visualization.PieChart(document.getElementById('myChart'));
-//       chart.draw(data, options);
-//     }
+
 
 // expense Deletion Functionality
 function deleteexpense(expenseId) {
