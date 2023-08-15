@@ -8,7 +8,7 @@ router.post('/login', UserController.userLogin)
 router.get("/users", UserController.getUsers);
 router.delete("/delete-user/:id", UserController.deleteUser);
 router.get("/user/:email", UserController.getUserByEmail);
-router.patch('/update-premium-status/:user', UserController.updatePremiumStatus)
+router.post('/update/:id', UserController.updatePremiumStatus)
 router.get('/UserWithExpenseDetails', UserController.UserWithExpenseDetails)
 router.patch('/UserWithExpenseDetails/:id', UserController.updateUserExpenseDetails)
 router.post('/password/forgotpassword/:email', UserController.forgotpassword)

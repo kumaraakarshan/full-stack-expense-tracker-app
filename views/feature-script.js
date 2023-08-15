@@ -29,7 +29,7 @@ document.getElementById("submitBtn").addEventListener("click", function() {
     formData.UserId = decodedToken.userID;
     axios.post('/add-expense', formData, { headers })
         .then(response => {
-            alert(response.data.message); // Display the success message from the server
+            alert('expense added successfully'); // Display the success message from the server
             fetchAndDisplayexpenses(); // Refresh the expense list after data is saved
         })
         .catch(error => {
@@ -52,7 +52,7 @@ function deleteexpense(expenseId) {
     
         .then(res => {
             
-            alert(res.data.message);
+            alert('deleted successfully');
             fetchAndDisplayexpenses(); // Refresh the expense list after deletion
         })
         .catch(error => {
@@ -73,8 +73,11 @@ function fetchAndDisplayexpenses() {
 
     const tokenParts = token.split('.');
     const decodedToken = JSON.parse(atob(tokenParts[1]));
+    
     const user = decodedToken.userID; // Extract user ID from decoded token
-
+    console.log(decodedToken);
+    
+   
     axios.get(`/expenses/${user}`, { headers }) // Use template literal to pass user ID
         .then(response => {
             const expenses = response.data;
@@ -105,6 +108,7 @@ function fetchAndDisplayexpenses() {
 }
 
 
+
 document.getElementById("buyPremiumBtn").addEventListener("click", function() {
     const token = localStorage.getItem("authToken");
     const headers = {
@@ -112,15 +116,22 @@ document.getElementById("buyPremiumBtn").addEventListener("click", function() {
         Authorization: `Bearer ${token}`
     };
 
+
+
+
     const tokenParts = token.split('.');
     const decodedToken = JSON.parse(atob(tokenParts[1]));
     const user = decodedToken.userID; 
+
+
+
+    
     // Fetch user details from the server or local storage
     // ...
 
     // Set up the payment options
     const options = {
-        key: "rzp_test_7fGf0QOB8w7jQ4",
+        key: "rzp_test_EMujkV0DxmzTFB",
         amount: 1000, // Amount in paise (INR 10)
         currency: "INR",
         name: "Premium Subscription",
@@ -128,28 +139,19 @@ document.getElementById("buyPremiumBtn").addEventListener("click", function() {
         
         handler: function(response) {
             const paymentId = response.razorpay_payment_id;
-            // Send the payment ID to your server for verification
-            axios.post(`/update-premium-status/${user}`, { paymentId }, { headers })
+        console.log('----------------------------');
+            console.log(paymentId);
+            // Send the payment ID and user ID to your server for verification and storage
+            axios.post(`/update/${user}`, { paymentId }, { headers })
                 .then(response => {
-                    alert("Payment successful! Premium status updated.");
+                    alert("Payment successful! Premium status updated and payment ID stored.");
                 })
                 .catch(error => {
                     console.error("Payment verification error: ", error);
                     alert("Payment successful, but an error occurred while updating premium status.");
                 });
-
         },
-        prefill: {
-            name: user.name,
-            email: user.email,
-            // Add other pre-filled details if needed
-        },
-        notes: {
-            // Add optional notes
-        },
-        theme: {
-            color: "#F37254"
-        }
+        
     };
 
     // Open the Razorpay payment window

@@ -1,8 +1,11 @@
 const User = require("../models/user");
+const axios = require('axios');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const Order = require('../models/order');
 const nodemailer = require("nodemailer");
 const mailgen = require("mailgen");
+const verifyPaymentWithGateway = require('../utils/paymentVerification');
 var path = require('path');
 const { Sequelize, DataTypes } = require("sequelize");
 const Expense = require("../models/expense");
@@ -106,14 +109,34 @@ class UserController {
   };
   static updatePremiumStatus = async (req, res) => {
     const { id } = req.params;
-    User.update({ premium: true }, { where: { id: id } })
-      .then((result) => {
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        res.status(500).json({ error: err });
-      });
-  };
+    const { paymentId } = req.body;
+
+    // Verify payment with Razorpay API
+    const isPaymentVerified = await verifyPaymentWithGateway(paymentId);
+
+    if (isPaymentVerified) {
+        // Update the premium status
+        try {
+            await User.update({ premium: true }, { where: { id: id } });
+
+            // Create a new entry in the "orders" table with the payment ID and user ID
+            const order = await Order.create({
+                id: id,
+                paymentid: paymentId,
+                orderid: 'null' // Replace with the actual order ID
+            });
+
+            res.status(200).json({ message: 'Payment verified and premium status updated.', order });
+        } catch (error) {
+            res.status(500).json({ error: 'Error updating premium status and creating order.' });
+        }
+    } else {
+        res.status(400).json({ error: 'Payment verification failed.' });
+    }
+};
+
+
+
   static UserWithExpenseDetails = async (req, res, next) => {
     const { user } = req.params;
     const data = await User.findAll({
