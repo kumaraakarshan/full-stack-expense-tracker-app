@@ -16,7 +16,7 @@ document.getElementById("submitBtn").addEventListener("click", function() {
 
 
 
-  axios.post('/api/signup', formData)
+  axios.post('/signup', formData)
       .then(response => {
        
 

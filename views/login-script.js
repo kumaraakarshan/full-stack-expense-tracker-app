@@ -6,18 +6,29 @@ document.addEventListener("DOMContentLoaded", function() {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
 
-        // Send login request to the backend using Axios or fetch API
-        axios.post("/api/login", { email, password })
-        .then(response => {
-          const token = response.data.token; // Assuming the token is part of the response
-          localStorage.setItem('token', token); // Store the token in localStorage
-      
-          alert('Login successful');
-          window.location.href = "/feature.html";
-        })
-        .catch(error => {
-          console.error("Login failed:", error);
-        });
-      
+        // Send login request to the backend using Axios 
+        axios.post("/login", { email, password })
+            .then(response => {
+                console.log(response.data.status);
+               // const { token } = respone
+                //console.log("Token:", token);
+                localStorage.setItem("authToken", response.data.token);
+
+                const { user } = response.data;
+                localStorage.setItem("userInfo", JSON.stringify(user));
+                if (response.data.status === 200) {
+                    alert('Login successfully');
+                    window.location.href = "/feature.html";
+                }
+                else{
+                    alert(response.data.message);
+                }
+
+            })
+            .catch(error => {
+               
+                console.error("Login failed:", error);
+                
+            });
     });
 });

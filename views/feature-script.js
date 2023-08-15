@@ -1,4 +1,7 @@
+
+
 // Form Submission Logic
+
 document.getElementById("submitBtn").addEventListener("click", function() {
     const amount = document.getElementById("amount").value;
     const description = document.getElementById("description").value;
@@ -10,8 +13,21 @@ document.getElementById("submitBtn").addEventListener("click", function() {
         category: category
         
     };
-
-    axios.post('/api/save-data', formData)
+    
+    const token = localStorage.getItem("authToken");
+    
+    const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+    };
+    const tokenParts = token.split('.');
+    const decodedToken = JSON.parse(atob(tokenParts[1])); 
+    console.log('*****************');
+    console.log(decodedToken);
+    console.log('*****************');
+   
+    formData.UserId = decodedToken.userID;
+    axios.post('/add-expense', formData, { headers })
         .then(response => {
             alert(response.data.message); // Display the success message from the server
             fetchAndDisplayexpenses(); // Refresh the expense list after data is saved
@@ -24,11 +40,15 @@ document.getElementById("submitBtn").addEventListener("click", function() {
 });
 
 
-
-
 // expense Deletion Functionality
 function deleteexpense(expenseId) {
-    axios.delete(`/api/delete-expense/${expenseId}`)
+
+    const token = localStorage.getItem("authToken");
+    const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+    };
+    axios.delete(`/delete-expense/${expenseId}`, { headers })
     
         .then(res => {
             
@@ -45,7 +65,17 @@ function deleteexpense(expenseId) {
 
 // Fetch and Display expenses
 function fetchAndDisplayexpenses() {
-    axios.get('/api/get-expenses')
+    const token = localStorage.getItem("authToken");
+    const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+    };
+
+    const tokenParts = token.split('.');
+    const decodedToken = JSON.parse(atob(tokenParts[1]));
+    const user = decodedToken.userID; // Extract user ID from decoded token
+
+    axios.get(`/expenses/${user}`, { headers }) // Use template literal to pass user ID
         .then(response => {
             const expenses = response.data;
             const expenseList = document.getElementById('items');
@@ -65,7 +95,6 @@ function fetchAndDisplayexpenses() {
                 deleteButton.textContent = 'Delete';
                 deleteButton.addEventListener('click', () => deleteexpense(expense.id));
                 
-
                 listItem.appendChild(deleteButton);
                 expenseList.appendChild(listItem);
             });
@@ -74,6 +103,7 @@ function fetchAndDisplayexpenses() {
             console.error('Error fetching expenses: ', error);
         });
 }
+
 
 // Call the fetchAndDisplayexpenses function when the page is fully loaded
 window.addEventListener('load', fetchAndDisplayexpenses);

@@ -1,35 +1,38 @@
-
 const express = require('express');
-const mysql = require('mysql2');
-const bodyParser = require('body-parser');
-const bcrypt = require('bcrypt');
-const app = express();
-const cookieParser = require('cookie-parser'); // For parsing cookies
+var cors = require('cors')
+const jwt_decode = require('jwt-decode');
+const sequelize = require('./utils/database')
+const ExpenseRoute= require('./routers/expenseRouter')
+const UserRoute= require('./routers/userRouter')
+const Expenses = require('./models/expense')
+const User = require('./models/user')
+var path = require('path');
 
-const port = process.env.PORT || 3000;
-app.use(express.static('views'));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(cookieParser());
-const signupController=require('./controller/user')
-// MySQL Configuration
-const db=require('./utils/database');
-// API endpoint to save form data
-const expenseController=require('./controller/expense')
-const { authenticateToken } = require('./controller/authentication'); // Adjust the path accordingly
+sequelize.sync()
+  .then(() => {
+    console.log('Database synced successfully.');
+  })
+  .catch((error) => {
+    console.error('Error syncing database:', error);
+  })
 
-app.use('/api', authenticateToken); // Apply authentication middleware to all /api routes
+  const app = express();
+  app.use(express.json());
+  app.use(cors({
+    origin:"*"
+  }))
+  app.use(express.static('views'));
+  app.use('/', ExpenseRoute)
+  app.use('/',UserRoute)
+  User.hasMany(Expenses);
+  Expenses.belongsTo(User)
 
-app.post('/api/signup',signupController.signup);
-app.post('/api/login',signupController.login);
+// app.get('/', (req, res) => {
+//   const indexfile = path.join(currentDirPath, '/views/index.html')
+//   res.sendFile(indexfile);
+// });
 
-app.get('/api/get-expenses', authenticateToken, expenseController.getData);
-app.post(`/api/save-data`,expenseController.saveData);
-
-
-app.delete(`/api/delete-expense/:id`,expenseController.deleteData);
-
-
+const port = 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
