@@ -3,6 +3,7 @@ const Expenses = require("../models/expense");
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../utils/database");
 const User = require("../models/user");
+
 class ExpenseController {
   static addexpense = async (req, res) => {
     // const t = sequelize.transaction();

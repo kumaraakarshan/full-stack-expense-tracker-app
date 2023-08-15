@@ -105,5 +105,58 @@ function fetchAndDisplayexpenses() {
 }
 
 
+document.getElementById("buyPremiumBtn").addEventListener("click", function() {
+    const token = localStorage.getItem("authToken");
+    const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+    };
+
+    const tokenParts = token.split('.');
+    const decodedToken = JSON.parse(atob(tokenParts[1]));
+    const user = decodedToken.userID; 
+    // Fetch user details from the server or local storage
+    // ...
+
+    // Set up the payment options
+    const options = {
+        key: "rzp_test_7fGf0QOB8w7jQ4",
+        amount: 1000, // Amount in paise (INR 10)
+        currency: "INR",
+        name: "Premium Subscription",
+        description: "Unlock premium features",
+        
+        handler: function(response) {
+            const paymentId = response.razorpay_payment_id;
+            // Send the payment ID to your server for verification
+            axios.post(`/update-premium-status/${user}`, { paymentId }, { headers })
+                .then(response => {
+                    alert("Payment successful! Premium status updated.");
+                })
+                .catch(error => {
+                    console.error("Payment verification error: ", error);
+                    alert("Payment successful, but an error occurred while updating premium status.");
+                });
+
+        },
+        prefill: {
+            name: user.name,
+            email: user.email,
+            // Add other pre-filled details if needed
+        },
+        notes: {
+            // Add optional notes
+        },
+        theme: {
+            color: "#F37254"
+        }
+    };
+
+    // Open the Razorpay payment window
+    const rzp = new Razorpay(options);
+    rzp.open();
+});
+
+
 // Call the fetchAndDisplayexpenses function when the page is fully loaded
 window.addEventListener('load', fetchAndDisplayexpenses);
