@@ -237,8 +237,8 @@ console.log(premiumUsers);
       const transporter = nodemailer.createTransport({
         service: "Gmail",
         auth: {
-          user: "aakarshan0005@gmail.com", 
-          pass: "jjakxuuduudiywaz",
+          user: "aaku0005nwd@gmail.com", 
+          pass: "",
         },
       });
   
@@ -248,6 +248,18 @@ console.log(premiumUsers);
 
 
 
+
+      const mailOptions = {
+        from: "aaku0005nwd@gmail.com",
+        to: existingUser.email,
+        subject: "Password Reset Request",
+        html: `
+          <p>Hello,</p>
+          <p>We received a request to reset your password. Click the link below to reset it.</p>
+          <a href="${link}">Reset Password</a>
+          <p>If you didn't request a password reset, please ignore this email.</p>
+        `,
+      };
 
 
       transporter.sendMail(mailOptions, (error) => {

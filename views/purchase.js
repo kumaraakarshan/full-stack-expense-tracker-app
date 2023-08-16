@@ -31,3 +31,4 @@ document.getElementById('purchase').addEventListener('click', async () => {
         console.log(err);
     }
 });
+

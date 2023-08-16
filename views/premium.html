@@ -6,31 +6,11 @@
     <title>Premium User Leaderboard</title>
 </head>
 <body>
+    <button id="exportPdfButton">Export PDF of your expense</button>
     <h1>Premium User Leaderboard</h1>
     <ul id="leaderboard"></ul>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script>
-       const leaderboardElement = document.getElementById("leaderboard");
-
-document.addEventListener("DOMContentLoaded", async function() {
-    try {
-        const response = await axios.get("/get-premium-leaderboard");
-        const premiumUsers = response.data;
-
-        leaderboardElement.innerHTML = ''; // Clear previous content
-
-        premiumUsers.forEach((user, index) => {
-            const listItem = document.createElement('li');
-            listItem.innerHTML = `Name-${user.name}-Total Expense-${user.totalExpense}`;
-
-            leaderboardElement.appendChild(listItem);
-        });
-    } catch (error) {
-        console.error("Error fetching premium leaderboard:", error);
-    }
-});
-
-    </script>
+    <script src="premium.js"></script>
 </body>
 </html>

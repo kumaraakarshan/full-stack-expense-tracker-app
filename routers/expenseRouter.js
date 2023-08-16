@@ -9,4 +9,7 @@ router.delete("/delete-expense/:id", ExpenseController.deleteexpense);
 router.get("/expense/:id", ExpenseController.getexpenseById);
 router.put("/update-expense/:id", ExpenseController.updateexpense);
 router.get("/expenseByGroup", ExpenseController.expensesByGroup);
+
+
+router.get("/export-expenses-pdf/:userId", ExpenseController.exportPdf);
 module.exports = router;

@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../utils/database");
+
 const Expenses = sequelize.define("expense", {
   date: {
     type: DataTypes.DATE,

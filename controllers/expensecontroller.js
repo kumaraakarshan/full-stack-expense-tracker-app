@@ -3,7 +3,8 @@ const Expenses = require("../models/expense");
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../utils/database");
 const User = require("../models/user");
-
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
 class ExpenseController {
   static addexpense = async (req, res) => {
     try {
@@ -107,5 +108,46 @@ class ExpenseController {
         res.status(500).json({ error: error });
       });
   };
+
+
+
+  static exportPdf = async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await User.findByPk(userId, {
+        include: Expenses,
+      });
+  
+      const expenses = await Expenses.findAll({ where: { UserId: userId } });
+  
+      if (expenses.length === 0) {
+        return res.status(404).json({ error: 'No expenses found for the user' });
+      }
+  
+      const doc = new PDFDocument();
+      const pdfFilePath = `user_${userId}_expenses.pdf`;
+      const writeStream = fs.createWriteStream(pdfFilePath);
+  
+      doc.pipe(writeStream);
+  
+      doc.fontSize(18).text(`Expenses for ${user.name}`, { align: 'center' });
+  
+      expenses.forEach((expense) => {
+        doc.fontSize(12).text(`Date: ${expense.date}Description: ${expense.description}, Amount: ${expense.amount}`);
+      });
+  
+      doc.end();
+  
+      writeStream.on('finish', () => {
+        res.download(pdfFilePath, 'user_expenses.pdf', () => {
+          fs.unlinkSync(pdfFilePath); // Remove the PDF file after download
+        });
+      });
+    } catch (error) {
+      console.error('Error exporting expenses as PDF:', error);
+      res.status(500).json({ error: 'An error occurred while exporting expenses as PDF' });
+    }
+  };
+
 }
 module.exports = ExpenseController;
