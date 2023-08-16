@@ -6,34 +6,35 @@ const User = require("../models/user");
 
 class ExpenseController {
   static addexpense = async (req, res) => {
-    // const t = sequelize.transaction();
+    try {
+        const {
+            amount,
+            description,
+            category,
+            UserId
+        } = req.body;
 
-    
-    const {
-      amount,
+        const user = await User.findByPk(UserId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
 
-      description,
-      
-      category,
-     
-      UserId,
+        const expense = await Expenses.create({
+            description,
+            amount,
+            category,
+            UserId
+        });
 
-      UserTotalExpense,
-    } = req.body;
-    const totalExpense = Number(amount)+ Number(UserTotalExpense);
- 
-    Expenses.create(
-      { description, amount, category,  UserId }
-      // { transaction: t }
-    )
-      .then((result) => {
-        res.send(result);
-      })
-      .catch((error) => {
-        //t.rollback();
-        res.status(500).json({ error: error, data: req.body });
-      });
-  };
+        const updatedTotalExpense = Number(user.totalExpense )+ Number (amount);
+        await user.update({ totalExpense: updatedTotalExpense });
+
+        res.status(201).json({ message: 'Expense added successfully' });
+    } catch (error) {
+        console.error('Error adding expense:', error);
+        res.status(500).json({ error: 'An error occurred while adding the expense' });
+    }
+};
   static getexpenses = async (req, res) => {
     const userId = req.params.user; // Get user ID from request params
     try {
@@ -50,6 +51,11 @@ class ExpenseController {
 
   static deleteexpense = async (req, res) => {
     const { id } = req.params;
+    
+    const expense = await Expenses.findByPk(id);
+    const user = await User.findByPk(expense.UserId);
+    const updatedTotalExpense = Number(user.totalExpense) - Number(expense.amount);
+    await user.update({ totalExpense: updatedTotalExpense });
     Expenses.destroy({ where: { id: id } })
       .then((result) => {
         res.status(200).json(result);
@@ -60,6 +66,8 @@ class ExpenseController {
   };
   static getexpenseById = async (req, res) => {
     const { id } = req.params;
+
+    
     Expenses.findOne({ where: { id: id } })
       .then((result) => {
         res.status(200).json(result);

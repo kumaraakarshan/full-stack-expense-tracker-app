@@ -141,6 +141,13 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (isPremiumUser) {
             premiumStatusElement.textContent = "You are a premium user!";
             buyPremiumButton.style.display = "none";
+            const premiumButton = document.createElement("button");
+            premiumButton.textContent = "Go to Premium Page";
+            
+            premiumButton.addEventListener("click", function() {
+                window.location.href = "premium.html"; // Redirect to the premium page
+            });
+            premiumButtonContainer.appendChild(premiumButton);
         } else {
             premiumStatusElement.textContent = "You are not a premium user.";
         }

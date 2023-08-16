@@ -1,4 +1,5 @@
 const User = require("../models/user");
+
 const axios = require('axios');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -151,6 +152,37 @@ static getPremiumStatus= async(req, res) =>{
       res.status(500).json({ error: 'An error occurred while fetching premium status.' });
   }
 }
+static getPremiumLeaderboard = async (req, res) => {
+  try {
+    const premiumUsers = await User.findAll({
+      attributes: ['id', 'name', 'premium','totalExpense'],
+      where: { premium: true },
+      include: [
+        {
+          model: Expense,
+          attributes: [],
+          required: false,
+          where: { UserId: Sequelize.col('User.id') },
+        },
+      ],
+      users: [[Sequelize.literal('totalExpense'), 'DESC']], // Use 'totalExpense' alias
+    });
+console.log(premiumUsers);
+    res.status(200).json(premiumUsers);
+  } catch (error) {
+    console.error('Error fetching premium leaderboard:', error);
+    res.status(500).json({ error: 'An error occurred while fetching premium leaderboard.' });
+  }
+}
+
+
+
+
+
+
+
+
+
 
 
   static UserWithExpenseDetails = async (req, res, next) => {
@@ -167,18 +199,30 @@ static getPremiumStatus= async(req, res) =>{
         res.status(500).json({ error: error });
       });
   };
+
+
+
+
+  
   static updateUserExpenseDetails = async (req, res, next) => {
     const { id } = req.params;
     const { totalExpense } = req.body;
-    console.log(req.body);
-    User.update({ totalExpense: totalExpense }, { where: { id: id } })
-      .then((result) => {
-        res.status(200).json(result);
-      })
-      .catch((error) => {
-        res.status(500).json({ error: error });
-      });
-  };
+
+    try {
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        await user.update({ totalExpense: totalExpense });
+
+        res.status(200).json({ message: 'Total expense updated successfully' });
+    } catch (error) {
+        console.error('Error updating total expense:', error);
+        res.status(500).json({ error: 'An error occurred while updating total expense' });
+    }
+};
+
   static forgotpassword = async (req, res) => {
     const { email } = req.params;
     // console.log(req.params);
