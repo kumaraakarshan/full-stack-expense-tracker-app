@@ -64,6 +64,7 @@ function deleteexpense(expenseId) {
 }
 const itemsPerPage = 2; // Set the number of items per page
 let currentPage = 1;
+let expenses = [];
 // Fetch and Display expenses
 function fetchAndDisplayexpenses(page) {
     const token = localStorage.getItem("authToken");
@@ -88,23 +89,21 @@ function fetchAndDisplayexpenses(page) {
 
 
    
-    axios.get(`/expenses/${user}`, { headers }) // Use template literal to pass user ID
+    axios.get(`/expenses/${user}?page=${page}&limit=${itemsPerPage}`, { headers }) // Use template literal to pass user ID
         .then(response => {
-            const expenses = response.data;
+            
+            expenses = response.data;
+       
+           
             const expenseList = document.getElementById('items');
-            
-            if (!expenseList) {
-                console.error('Error: expenseList element not found.');
-                return;
-            }
-            
+           
             expenseList.innerHTML = ''; 
-            
+           
             const startIndex = (page - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
 
 
-            expenses.slice(startIndex, endIndex).forEach(expense => {
+            expenses.forEach(expense => {
                 const listItem = document.createElement('li');
                 listItem.textContent = `amount: ${expense.amount}, description: ${expense.description}, category: ${expense.category}`;
 
@@ -126,7 +125,8 @@ function fetchAndDisplayexpenses(page) {
 function updatePaginationButtons() {
     const prevButton = document.getElementById('prevPage');
     const nextButton = document.getElementById('nextPage');
-  
+    
+    
     prevButton.disabled = currentPage === 1;
     nextButton.disabled = false; // Enable the next button, as we're loading data dynamically
   }
@@ -134,11 +134,13 @@ function updatePaginationButtons() {
   document.getElementById('prevPage').addEventListener('click', () => {
     if (currentPage > 1) {
       currentPage--;
+    
       fetchAndDisplayexpenses(currentPage);
     }
   });
 
   document.getElementById('nextPage').addEventListener('click', () => {
+    console.log('Next page clicked. Current page:', currentPage);
     currentPage++;
     fetchAndDisplayexpenses(currentPage);
   });

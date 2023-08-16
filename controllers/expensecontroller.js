@@ -39,17 +39,18 @@ class ExpenseController {
   static getexpenses = async (req, res) => {
     
     const userId = req.params.user; // Get user ID from request params
-
+console.log(req.query);
     const sort = req.query.sort || "ASC";
    const page = +req.query.page  || 1;
     const limit = +req.query.limit || 2;
     const data = await Expenses.findAll({
-      offset: (page - 1) * limit,
-      limit: limit,
+      offset: (+page - 1) * limit,
+      limit: +limit,
       where: { userId: userId },
       order: [["updatedAt", sort]],
     })
       .then((result) => {
+        
         res.status(200).json(result);
       })
       .catch((error) => {
