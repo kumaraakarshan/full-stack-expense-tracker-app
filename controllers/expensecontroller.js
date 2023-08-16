@@ -37,17 +37,24 @@ class ExpenseController {
     }
 };
   static getexpenses = async (req, res) => {
+    
     const userId = req.params.user; // Get user ID from request params
-    try {
-        const data = await Expenses.findAll({
-            where: { userId: userId },
-            // ... other query options ...
-        });
 
-        res.status(200).json(data); // Send the fetched data to the frontend
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    const sort = req.query.sort || "ASC";
+   const page = +req.query.page  || 1;
+    const limit = +req.query.limit || 2;
+    const data = await Expenses.findAll({
+      offset: (page - 1) * limit,
+      limit: limit,
+      where: { userId: userId },
+      order: [["updatedAt", sort]],
+    })
+      .then((result) => {
+        res.status(200).json(result);
+      })
+      .catch((error) => {
+        res.status(500).json({ error: error });
+      });
 };
 
   static deleteexpense = async (req, res) => {

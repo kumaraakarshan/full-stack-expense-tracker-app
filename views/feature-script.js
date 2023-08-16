@@ -62,9 +62,10 @@ function deleteexpense(expenseId) {
     
        
 }
-
+const itemsPerPage = 2; // Set the number of items per page
+let currentPage = 1;
 // Fetch and Display expenses
-function fetchAndDisplayexpenses() {
+function fetchAndDisplayexpenses(page) {
     const token = localStorage.getItem("authToken");
     const headers = {
         "Content-Type": "application/json",
@@ -99,7 +100,11 @@ function fetchAndDisplayexpenses() {
             
             expenseList.innerHTML = ''; 
             
-            expenses.forEach(expense => {
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+
+
+            expenses.slice(startIndex, endIndex).forEach(expense => {
                 const listItem = document.createElement('li');
                 listItem.textContent = `amount: ${expense.amount}, description: ${expense.description}, category: ${expense.category}`;
 
@@ -110,11 +115,34 @@ function fetchAndDisplayexpenses() {
                 listItem.appendChild(deleteButton);
                 expenseList.appendChild(listItem);
             });
+
+            updatePaginationButtons();
         })
         .catch(error => {
             console.error('Error fetching expenses: ', error);
         });
 }
+
+function updatePaginationButtons() {
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+  
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = false; // Enable the next button, as we're loading data dynamically
+  }
+
+  document.getElementById('prevPage').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      fetchAndDisplayexpenses(currentPage);
+    }
+  });
+
+  document.getElementById('nextPage').addEventListener('click', () => {
+    currentPage++;
+    fetchAndDisplayexpenses(currentPage);
+  });
+
 const premiumStatusElement = document.getElementById("premiumStatus");
 const buyPremiumButton = document.getElementById("buyPremiumBtn");
 
@@ -229,4 +257,4 @@ document.getElementById("buyPremiumBtn").addEventListener("click", function() {
 
 
 // Call the fetchAndDisplayexpenses function when the page is fully loaded
-window.addEventListener('load', fetchAndDisplayexpenses);
+window.addEventListener('load', fetchAndDisplayexpenses(currentPage));
