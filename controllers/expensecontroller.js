@@ -114,11 +114,14 @@ class ExpenseController {
   static exportPdf = async (req, res) => {
     try {
       const userId = req.params.userId;
-      const user = await User.findByPk(userId, {
-        include: Expenses,
-      });
+      const page = req.query.page || 1; // Get the page number from query parameter (default to 1)
+      const pageSize = 10; // Set the number of expenses per page
   
-      const expenses = await Expenses.findAll({ where: { UserId: userId } });
+      const expenses = await Expenses.findAll({
+        where: { UserId: userId },
+        offset: (page - 1) * pageSize, // Calculate the offset based on the page number
+        limit: pageSize, // Limit the number of expenses per page
+      });
   
       if (expenses.length === 0) {
         return res.status(404).json({ error: 'No expenses found for the user' });
@@ -130,10 +133,18 @@ class ExpenseController {
   
       doc.pipe(writeStream);
   
-      doc.fontSize(18).text(`Expenses for ${user.name}`, { align: 'center' });
+      doc.fontSize(18).text(`Expenses for User ID: ${userId}`, { align: 'center' });
   
+      // Headers
+      const headers = ['Date', 'Description', 'Amount'];
+      const headerText = headers.join(' | ');
+      doc.fontSize(12).text(headerText, { underline: true });
+  
+      // Table rows
       expenses.forEach((expense) => {
-        doc.fontSize(12).text(`Date: ${expense.date}Description: ${expense.description}, Amount: ${expense.amount}`);
+        const rowData = [expense.date, expense.description, expense.amount.toString()];
+        const rowText = rowData.join(' | ');
+        doc.fontSize(12).text(rowText);
       });
   
       doc.end();
@@ -148,6 +159,6 @@ class ExpenseController {
       res.status(500).json({ error: 'An error occurred while exporting expenses as PDF' });
     }
   };
-
+    
 }
 module.exports = ExpenseController;
