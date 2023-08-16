@@ -77,6 +77,15 @@ function fetchAndDisplayexpenses() {
     const user = decodedToken.userID; // Extract user ID from decoded token
     console.log(decodedToken);
     
+
+    const userInfo=localStorage.getItem('userInfo');
+    const userinfoParts = userInfo.split(',');
+    userPremium=userinfoParts[4];
+    console.log(userPremium);
+    userPremiumstatus=userPremium.split(':');
+    console.log(userPremiumstatus[1]);
+
+
    
     axios.get(`/expenses/${user}`, { headers }) // Use template literal to pass user ID
         .then(response => {
@@ -106,6 +115,39 @@ function fetchAndDisplayexpenses() {
             console.error('Error fetching expenses: ', error);
         });
 }
+const premiumStatusElement = document.getElementById("premiumStatus");
+const buyPremiumButton = document.getElementById("buyPremiumBtn");
+
+
+
+// Assuming you have an HTML element with the ID "premiumStatus"
+
+
+document.addEventListener("DOMContentLoaded", async function() {
+    try {
+        const token = localStorage.getItem("authToken");
+        const headers = {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+        };
+
+        const tokenParts = token.split('.');
+        const decodedToken = JSON.parse(atob(tokenParts[1]));
+        const user = decodedToken.userID;
+
+        const response = await axios.get(`/get-premium-status/${user}`, { headers });
+        const isPremiumUser = response.data.premium;
+
+        if (isPremiumUser) {
+            premiumStatusElement.textContent = "You are a premium user!";
+            buyPremiumButton.style.display = "none";
+        } else {
+            premiumStatusElement.textContent = "You are not a premium user.";
+        }
+    } catch (error) {
+        console.error("Error fetching premium status:", error);
+    }
+});
 
 
 
@@ -123,6 +165,15 @@ document.getElementById("buyPremiumBtn").addEventListener("click", function() {
     const decodedToken = JSON.parse(atob(tokenParts[1]));
     const user = decodedToken.userID; 
 
+  
+    
+    const userInfo=localStorage.getItem('userInfo');
+    const userinfoParts = userInfo.split(',');
+    const userPremium=userinfoParts[4];
+    console.log(userPremium);
+    const userPremiumstatus=userPremium.split(':');
+    console.log(userPremiumstatus[1]);
+
 
 
     
@@ -130,13 +181,16 @@ document.getElementById("buyPremiumBtn").addEventListener("click", function() {
     // ...
 
     // Set up the payment options
+
+
+ 
     const options = {
         key: "rzp_test_EMujkV0DxmzTFB",
         amount: 1000, // Amount in paise (INR 10)
         currency: "INR",
         name: "Premium Subscription",
         description: "Unlock premium features",
-        
+       
         handler: function(response) {
             const paymentId = response.razorpay_payment_id;
         console.log('----------------------------');
@@ -145,15 +199,22 @@ document.getElementById("buyPremiumBtn").addEventListener("click", function() {
             axios.post(`/update/${user}`, { paymentId }, { headers })
                 .then(response => {
                     alert("Payment successful! Premium status updated and payment ID stored.");
+                    localStorage.setItem(userPremiumstatus[1],true)
+                    
+                    updateUIForPremiumUser()
                 })
                 .catch(error => {
                     console.error("Payment verification error: ", error);
                     alert("Payment successful, but an error occurred while updating premium status.");
                 });
+
+
+                  
         },
         
     };
-
+    
+   
     // Open the Razorpay payment window
     const rzp = new Razorpay(options);
     rzp.open();
