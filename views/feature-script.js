@@ -62,9 +62,21 @@ function deleteexpense(expenseId) {
     
        
 }
-const itemsPerPage = 2; // Set the number of items per page
+const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
 let currentPage = 1;
 let expenses = [];
+let totalPages;
+const savedItemsPerPage = localStorage.getItem('itemsPerPage');
+if (savedItemsPerPage) {
+    itemsPerPageSelect.value = savedItemsPerPage;
+}
+itemsPerPageSelect.addEventListener('change', () => {
+    const selectedItemsPerPage = itemsPerPageSelect.value;
+    localStorage.setItem('itemsPerPage', selectedItemsPerPage);
+    currentPage = 1; // Reset the current page when changing items per page
+    fetchAndDisplayexpenses(currentPage);
+});
+
 // Fetch and Display expenses
 function fetchAndDisplayexpenses(page) {
     const token = localStorage.getItem("authToken");
@@ -78,27 +90,21 @@ function fetchAndDisplayexpenses(page) {
     
     const user = decodedToken.userID; // Extract user ID from decoded token
     console.log(decodedToken);
-    
 
-    const userInfo=localStorage.getItem('userInfo');
-    const userinfoParts = userInfo.split(',');
-    userPremium=userinfoParts[4];
-    console.log(userPremium);
-    userPremiumstatus=userPremium.split(':');
-    console.log(userPremiumstatus[1]);
-
-
-   
+    const itemsPerPage = itemsPerPageSelect.value;
     axios.get(`/expenses/${user}?page=${page}&limit=${itemsPerPage}`, { headers }) // Use template literal to pass user ID
         .then(response => {
             
             expenses = response.data;
        
-           
+            const totalCount = +response.headers['x-total-count'];
+             totalPages = Math.ceil(totalCount/ itemsPerPageSelect.value)
+
             const expenseList = document.getElementById('items');
            
             expenseList.innerHTML = ''; 
-           
+            
+
             const startIndex = (page - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
 
@@ -125,11 +131,9 @@ function fetchAndDisplayexpenses(page) {
 function updatePaginationButtons() {
     const prevButton = document.getElementById('prevPage');
     const nextButton = document.getElementById('nextPage');
-    
-    
+    console.log(expenses.length);
     prevButton.disabled = currentPage === 1;
-    nextButton.disabled = false; // Enable the next button, as we're loading data dynamically
-  }
+    nextButton.disabled = currentPage >= totalPages }
 
   document.getElementById('prevPage').addEventListener('click', () => {
     if (currentPage > 1) {

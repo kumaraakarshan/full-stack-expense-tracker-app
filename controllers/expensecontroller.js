@@ -43,6 +43,7 @@ console.log(req.query);
     const sort = req.query.sort || "ASC";
    const page = +req.query.page  || 1;
     const limit = +req.query.limit || 2;
+    const { count, rows } = await Expenses.findAndCountAll({ where: { userId: userId } });
     const data = await Expenses.findAll({
       offset: (+page - 1) * limit,
       limit: +limit,
@@ -50,7 +51,7 @@ console.log(req.query);
       order: [["updatedAt", sort]],
     })
       .then((result) => {
-        
+        res.setHeader('X-Total-Count', count);
         res.status(200).json(result);
       })
       .catch((error) => {
