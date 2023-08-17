@@ -11,7 +11,7 @@ const Expenses = require('./models/expense')
 const User = require('./models/user')
 var path = require('path');
 const morgan = require('morgan')
-
+require('dotenv').config();
 const accessLogStream=fs.createWriteStream(
   path.join(__dirname, 'access.log'),
   {flags:'a'}
@@ -41,7 +41,7 @@ app.use(morgan('combined',{stream:accessLogStream}))
 
 
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

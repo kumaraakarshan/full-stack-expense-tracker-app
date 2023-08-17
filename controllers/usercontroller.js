@@ -165,9 +165,9 @@ static getPremiumLeaderboard = async (req, res) => {
           where: { UserId: Sequelize.col('User.id') },
         },
       ],
-      users: [[Sequelize.literal('totalExpense'), 'DESC']], // Use 'totalExpense' alias
+      users: [[Sequelize.literal('totalExpense'), 'DESC']], 
     });
-console.log(premiumUsers);
+
     res.status(200).json(premiumUsers);
   } catch (error) {
     console.error('Error fetching premium leaderboard:', error);
@@ -241,13 +241,6 @@ console.log(premiumUsers);
           pass: "",
         },
       });
-  
-
-
-
-
-
-
 
       const mailOptions = {
         from: "aaku0005nwd@gmail.com",

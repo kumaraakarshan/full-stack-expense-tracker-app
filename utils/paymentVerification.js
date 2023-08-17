@@ -1,8 +1,8 @@
 const axios = require('axios');
 
 async function verifyPaymentWithGateway(paymentId) {
-    const apiKey = 'rzp_test_EMujkV0DxmzTFB'; // Replace with your actual Razorpay API key
-    const apiSecret = 'vdccryoRw3wAGlPQaVs64cKs'; // Replace with your actual Razorpay API secret
+    const apiKey = process.env.RAZORPAY_API_KEY;
+    const apiSecret = process.env.RAZORPAY_API_SECRET;
     const authString = `${apiKey}:${apiSecret}`;
     const base64Auth = Buffer.from(authString).toString('base64');
 
