@@ -12,10 +12,11 @@ router.post('/update/:id', UserController.updatePremiumStatus)
 router.get('/get-premium-status/:userId', UserController.getPremiumStatus);
 
 router.put('/update-user-expense/:id', UserController.updateUserExpenseDetails);
-
 router.get('/UserWithExpenseDetails', UserController.UserWithExpenseDetails)
 router.get('/get-premium-leaderboard', UserController.getPremiumLeaderboard)
 router.patch('/UserWithExpenseDetails/:id', UserController.updateUserExpenseDetails)
 router.post('/password/forgotpassword/:email', UserController.forgotpassword)
 router.patch('/resetpassword/:id/:token', UserController.userPasswordReset)
+
+
 module.exports = router;

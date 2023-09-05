@@ -14,10 +14,7 @@ const UserRoute= require('./routers/userRouter')
 // const ForgotPasswordRequests= require('./models/forgot-password')
 var path = require('path');
 const morgan = require('morgan')
-const bodyParser = require('body-parser');
-const nodemailer = require('nodemailer');
-const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
+
 require('dotenv').config();
 const accessLogStream=fs.createWriteStream(
   path.join(__dirname, 'access.log'),
@@ -35,11 +32,11 @@ const accessLogStream=fs.createWriteStream(
   const app = express();
   app.use(express.json());
   app.use(cors({
-    origin:"*"
+    origin: "*"
   }))
   app.use(express.static('views'));
-  app.use('/', ExpenseRoute)
-  app.use('/',UserRoute)
+  app.use(ExpenseRoute)
+  app.use(UserRoute)
   //app.use(forgotpasswordRoutes);
 //   User.hasMany(Expenses);
 //   Expenses.belongsTo(User)
