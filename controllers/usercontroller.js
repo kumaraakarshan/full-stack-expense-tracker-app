@@ -238,7 +238,7 @@ static getPremiumLeaderboard = async (req, res) => {
         service: "Gmail",
         auth: {
           user: "aaku0005nwd@gmail.com", 
-          pass: "",
+          pass: "7870840998",
         },
       });
 

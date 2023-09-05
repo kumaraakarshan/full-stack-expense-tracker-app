@@ -1,7 +1,5 @@
 const jwt_decode = require('jwt-decode');
 const Expenses = require("../models/expense");
-const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = require("../utils/database");
 const User = require("../models/user");
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
@@ -20,12 +18,13 @@ class ExpenseController {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const expense = await Expenses.create({
+        const data = new Expense({
             description,
             amount,
             category,
             UserId
         });
+        data.save();
 
         const updatedTotalExpense = Number(user.totalExpense )+ Number (amount);
         await user.update({ totalExpense: updatedTotalExpense });
