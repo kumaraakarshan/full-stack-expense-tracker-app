@@ -145,10 +145,11 @@ console.log(req.params);
   static exportPdf = async (req, res) => {
     try {
       const userId = req.params.userId;
+      console.log(userId);
       const page = req.query.page || 1; // Get the page number from query parameter (default to 1)
       const pageSize = 10; // Set the number of expenses per page
 
-      const expenses = await Expense.find({ UserId: userId })
+      const expenses = await Expense.find({ userId: userId })
         .skip((page - 1) * pageSize) // Calculate the offset based on the page number
         .limit(pageSize); // Limit the number of expenses per page
 
@@ -165,13 +166,13 @@ console.log(req.params);
       doc.fontSize(18).text(`Expenses for User ID: ${userId}`, { align: 'center' });
 
       // Headers
-      const headers = ['Date', 'Description', 'Amount'];
+      const headers = ['Description', 'Amount'];
       const headerText = headers.join(' | ');
       doc.fontSize(12).text(headerText, { underline: true });
 
       // Table rows
       expenses.forEach((expense) => {
-        const rowData = [expense.date, expense.description, expense.amount.toString()];
+        const rowData = [ expense.description, expense.amount.toString()];
         const rowText = rowData.join(' | ');
         doc.fontSize(12).text(rowText);
       });
