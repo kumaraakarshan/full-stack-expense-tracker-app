@@ -1,10 +1,9 @@
-const jwt_decode = require('jwt-decode');
-const Expenses = require("../models/expense");
-const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = require("../utils/database");
-const User = require("../models/user");
+const User = require('../models/user');
+const Expense = require('../models/expense');
+
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
+
 class ExpenseController {
   static addexpense = async (req, res) => {
     try {
@@ -12,23 +11,28 @@ class ExpenseController {
             amount,
             description,
             category,
-            UserId
+            userId 
         } = req.body;
 
-        const user = await User.findByPk(UserId);
+
+        const user = await User.findById(userId); 
+        
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
-
-        const expense = await Expenses.create({
+        console.log('addexpense function executed');
+        const expense = new Expense({
             description,
             amount,
             category,
-            UserId
+            userId 
         });
 
-        const updatedTotalExpense = Number(user.totalExpense )+ Number (amount);
-        await user.update({ totalExpense: updatedTotalExpense });
+        await expense.save();
+
+        const updatedTotalExpense = Number(user.totalExpense) + Number(amount);
+        user.totalExpense = updatedTotalExpense;
+        await user.save();
 
         res.status(201).json({ message: 'Expense added successfully' });
     } catch (error) {
@@ -36,128 +40,145 @@ class ExpenseController {
         res.status(500).json({ error: 'An error occurred while adding the expense' });
     }
 };
+
+
   static getexpenses = async (req, res) => {
-    
     const userId = req.params.user; // Get user ID from request params
-console.log(req.query);
+    // console.log(userId);
+    // console.log(req.query);
     const sort = req.query.sort || "ASC";
-   const page = +req.query.page  || 1;
+    const page = +req.query.page || 1;
     const limit = +req.query.limit || 2;
-    const { count, rows } = await Expenses.findAndCountAll({ where: { userId: userId } });
-    const data = await Expenses.findAll({
-      offset: (+page - 1) * limit,
-      limit: +limit,
-      where: { userId: userId },
-      order: [["updatedAt", sort]],
-    })
-      .then((result) => {
-        res.setHeader('X-Total-Count', count);
-        res.status(200).json(result);
-      })
-      .catch((error) => {
-        res.status(500).json({ error: error });
-      });
-};
+
+    try {
+      const count = await Expense.countDocuments({ userId: userId });
+      const expenses = await Expense.find({ userId: userId })
+        .sort({ updatedAt: sort })
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+      res.setHeader('X-Total-Count', count);
+      res.status(200).json(expenses);
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+      res.status(500).json({ error: 'An error occurred while fetching expenses' });
+    }
+  };
 
   static deleteexpense = async (req, res) => {
-    const { id } = req.params;
-    
-    const expense = await Expenses.findByPk(id);
-    const user = await User.findByPk(expense.UserId);
-    const updatedTotalExpense = Number(user.totalExpense) - Number(expense.amount);
-    await user.update({ totalExpense: updatedTotalExpense });
-    Expenses.destroy({ where: { id: id } })
-      .then((result) => {
-        res.status(200).json(result);
-      })
-      .catch((error) => {
-        res.status(500).json({ error: error });
-      });
+    const { _id } = req.params;
+console.log(req.params);
+    try {
+      const expense = await Expense.findById(_id);
+      const user = await User.findById(expense.userId);
+
+      const updatedTotalExpense = Number(user.totalExpense) - Number(expense.amount);
+      user.totalExpense = updatedTotalExpense;
+      await user.save();
+
+      await Expense.findByIdAndRemove(_id);
+
+      res.status(200).json({ message: 'Expense deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      res.status(500).json({ error: 'An error occurred while deleting the expense' });
+    }
   };
+
   static getexpenseById = async (req, res) => {
     const { id } = req.params;
 
-    
-    Expenses.findOne({ where: { id: id } })
-      .then((result) => {
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        res.status(500).json({ error: err });
-      });
+    try {
+      const expense = await Expense.findById(id);
+
+      if (!expense) {
+        return res.status(404).json({ error: 'Expense not found' });
+      }
+
+      res.status(200).json(expense);
+    } catch (error) {
+      console.error('Error fetching expense:', error);
+      res.status(500).json({ error: 'An error occurred while fetching the expense' });
+    }
   };
+
   static updateexpense = async (req, res) => {
     const { id } = req.params;
-
     const { expenseName, expenseMoney, category, desc } = req.body;
-    Expenses.update(
-      { expenseName, expenseMoney, category, desc },
-      { where: { id: id } }
-    )
-      .then((result) => {
-        res.status(200).json(result);
-      })
-      .catch((error) => {
-        res.status(500).json({ error: error });
-      });
+
+    try {
+      const expense = await Expense.findByIdAndUpdate(
+        id,
+        { expenseName, expenseMoney, category, desc },
+        { new: true }
+      );
+
+      if (!expense) {
+        return res.status(404).json({ error: 'Expense not found' });
+      }
+
+      res.status(200).json(expense);
+    } catch (error) {
+      console.error('Error updating expense:', error);
+      res.status(500).json({ error: 'An error occurred while updating the expense' });
+    }
   };
+
   static expensesByGroup = async (req, res, next) => {
-    const { user } = req.params;
-    const data = await Expenses.findAll({
-      attributes: [
-        "userId",
-        [Sequelize.fn("sum", Sequelize.col("expenseMoney")), "total_amount"],
-      ],
-      group: ["userId"],
-    })
-      .then((result) => {
-        res.status(200).json(result);
-      })
-      .catch((error) => {
-        res.status(500).json({ error: error });
-      });
+    try {
+      const data = await Expense.aggregate([
+        {
+          $group: {
+            _id: "$UserId",
+            total_amount: { $sum: "$amount" },
+          },
+        },
+      ]);
+
+      res.status(200).json(data);
+    } catch (error) {
+      console.error('Error fetching expenses by group:', error);
+      res.status(500).json({ error: 'An error occurred while fetching expenses by group' });
+    }
   };
-
-
 
   static exportPdf = async (req, res) => {
     try {
       const userId = req.params.userId;
+      console.log(userId);
       const page = req.query.page || 1; // Get the page number from query parameter (default to 1)
       const pageSize = 10; // Set the number of expenses per page
-  
-      const expenses = await Expenses.findAll({
-        where: { UserId: userId },
-        offset: (page - 1) * pageSize, // Calculate the offset based on the page number
-        limit: pageSize, // Limit the number of expenses per page
-      });
-  
+
+      const expenses = await Expense.find({ userId: userId })
+        .skip((page - 1) * pageSize) // Calculate the offset based on the page number
+        .limit(pageSize); // Limit the number of expenses per page
+
       if (expenses.length === 0) {
         return res.status(404).json({ error: 'No expenses found for the user' });
       }
-  
+
       const doc = new PDFDocument();
       const pdfFilePath = `user_${userId}_expenses.pdf`;
       const writeStream = fs.createWriteStream(pdfFilePath);
-  
+
       doc.pipe(writeStream);
-  
+
       doc.fontSize(18).text(`Expenses for User ID: ${userId}`, { align: 'center' });
-  
+
       // Headers
-      const headers = ['Date', 'Description', 'Amount'];
+      const headers = ['Description', 'Amount'];
       const headerText = headers.join(' | ');
       doc.fontSize(12).text(headerText, { underline: true });
-  
+
       // Table rows
       expenses.forEach((expense) => {
-        const rowData = [expense.date, expense.description, expense.amount.toString()];
+        const rowData = [ expense.description, expense.amount.toString()];
         const rowText = rowData.join(' | ');
         doc.fontSize(12).text(rowText);
       });
-  
+
       doc.end();
-  
+
       writeStream.on('finish', () => {
         res.download(pdfFilePath, 'user_expenses.pdf', () => {
           fs.unlinkSync(pdfFilePath); // Remove the PDF file after download
@@ -168,6 +189,6 @@ console.log(req.query);
       res.status(500).json({ error: 'An error occurred while exporting expenses as PDF' });
     }
   };
-    
 }
+
 module.exports = ExpenseController;

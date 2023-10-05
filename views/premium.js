@@ -23,11 +23,6 @@ document.addEventListener("DOMContentLoaded", async function() {
 document.getElementById('exportPdfButton').addEventListener('click', async () => {
    
     const token = localStorage.getItem("authToken");
-    const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-    };
-
     const tokenParts = token.split('.');
     const decodedToken = JSON.parse(atob(tokenParts[1]));
     const userId = decodedToken.userID; 
